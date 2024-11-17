@@ -1,9 +1,10 @@
 {
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build && next export",
-    "start": "next start"
+    "build": "next build",
+    "build-test": "NODE_ENV=test next build",
+    "run-test": "cd out && serve",
+    "test": "yarn build-test && yarn run-test"
   },
   "dependencies": {
     "classnames": "^2.5.1",
@@ -13,7 +14,8 @@
     "react": "19.0.0-rc-02c0e824-20241028",
     "react-dom": "19.0.0-rc-02c0e824-20241028",
     "remark": "^15.0.1",
-    "remark-html": "^16.0.1"
+    "remark-html": "^16.0.1",
+    "serve": "^14.2.4"
   },
   "devDependencies": {
     "@types/node": "^20.14.8",

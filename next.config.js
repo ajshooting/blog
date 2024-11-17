@@ -1,8 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    basePath: "/blog",
-    // ↓ next build を実行する際に Static Export を利用します。
+    basePath: process.env.NODE_ENV === 'test' ? '' : '/blog',
+    assetPrefix: process.env.NODE_ENV === 'test' ? '' : '/blog',
     output: 'export',
+    images: {
+        unoptimized: true,
+    },
 }
 
 module.exports = nextConfig
