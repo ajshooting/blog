@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    basePath: process.env.NODE_ENV === 'test' ? '' : '/blog',
-    assetPrefix: process.env.NODE_ENV === 'test' ? '' : '/blog',
+    metadataBase: process.env.NODE_ENV === 'test' ? '' : 'https://ajshooting.github.io/blog',
     output: 'export',
     images: {
         unoptimized: true,
