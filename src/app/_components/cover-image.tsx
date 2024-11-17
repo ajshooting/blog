@@ -3,7 +3,7 @@ import Link from "next/link";
 // import Image from "next/image";
 
 import getConfig from 'next/config';
-const { publicRuntimeConfig } = getConfig();
+const { path } = getConfig().publicRuntimeConfig;
 
 type Props = {
   title: string;
@@ -14,7 +14,7 @@ type Props = {
 const CoverImage = ({ title, src, slug }: Props) => {
   const image = (
     <img
-      src={publicRuntimeConfig.path + src}
+      src={path + src}
       alt={`Cover Image for ${title}`}
       className={cn("shadow-sm w-full", {
         "hover:shadow-lg transition-shadow duration-200": slug,
