@@ -1,0 +1,78 @@
+---
+title: Gitで複数アカウント運用する方法
+date: '2024-12-12'
+tags: ['git', 'memo']
+draft: false
+summary: 複数のgitアカウントをいい感じに切り替えるための設定方法です
+---
+
+# Gitアカウントを複数使いたい!
+と自分は思ってますが、切り替えに結構苦労したのでここに自分のやり方を記載しておきます。
+ここでは1つのアカウントに対する操作を行うので、それぞれのアカウントについて以下の設定を行う必要があります。
+
+**注意 : githubの無料アカウントを複数保有することは利用規約で禁じられています**
+
+あと以下の操作はmacでの操作です。
+
+## sshの設定
+
+SSHKeyを作成する。
+```zsh
+ssh-keygen -t ed25519 -N "" -f ~/.ssh/<id名> -C "<メールアドレス>"
+ssh-add ~/.ssh/<id名>
+ssh-add --apple-use-keychain ~/.ssh/<id名>
+```
+
+`~/.ssh/config`に以下の設定を追加する。
+
+```.ssh/config
+Host <お好きな名前>
+  Hostname github.com
+  User git
+  Port 22
+  TCPKeepAlive yes
+  IdentitiesOnly yes
+  IdentityFile ~/.ssh/<id名>
+```
+
+githubに公開鍵を登録する。  
+`~/.ssh/<id名>.pub`の中身をgithubのSettings -> SSH and GPG keys -> New SSH key に貼り付ける。
+
+```zsh
+ssh -T <お好きな名前>
+```
+ってやってHiって返ってきたらOK。
+
+## GPGの設定(任意)
+これをするとコミット時に署名ができて、(Verified)って表示されるようになる。
+
+```zsh
+gpg --full-generate-key
+```
+選択肢は 1 -> 4096 -> 0 -> y ってやりました。
+メアドはgithubと同じのを設定、名前はなんでもいいはず
+
+```zsh
+gpg --list-secret-keys --keyid-format LONG
+gpg --armor --export <ここにKEY>
+```
+で出てきたものをコピーして、githubのSettings -> SSH and GPG keys -> New GPG key に貼り付ける。
+
+
+## zshrcに設定を追加
+
+`~/.zshrc`に以下の設定を追加する。
+
+```.zshrc
+function <お好きな関数名>() {
+  git config --global user.name "<アカウント名>"
+  git config --global user.email "<メールアドレス>"
+  git config --global user.signingkey <gpgKeyのやつ>
+  git config --global commit.gpgsign true
+}
+```
+
+自分は`gitaj`という関数を作って、`gitaj`って打つと設定が切り替わるようにしてます。
+
+
+おわり
