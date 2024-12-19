@@ -2,11 +2,11 @@
 const siteMetadata = {
   title: 'ajshooting Blog',
   author: 'ajshooting',
-  headerTitle: 'ajshootingBlog',
+  headerTitle: 'ajshooting Blog',
   description: "ajshooting's blog - using tailwind-nextjs-starter-blog",
   language: 'ja',
   theme: 'system', // system, dark or light
-  siteUrl: 'https://tailwind-nextjs-starter-blog.vercel.app',
+  siteUrl: 'https://ajshooting.github.io/blog',
   siteRepo: 'https://github.com/ajshooting/blog',
   siteLogo: `${process.env.BASE_PATH || ''}/static/images/logo.png`,
   socialBanner: `${process.env.BASE_PATH || ''}/static/images/twitter-card.png`,
@@ -45,9 +45,9 @@ const siteMetadata = {
     // posthogAnalytics: {
     //   posthogProjectApiKey: '', // e.g. 123e4567-e89b-12d3-a456-426614174000
     // },
-    // googleAnalytics: {
-    //   googleAnalyticsId: '', // e.g. G-XXXXXXX
-    // },
+    googleAnalytics: {
+      googleAnalyticsId: 'G-1E80E53JGY', // e.g. G-XXXXXXX
+    },
   },
   // newsletter: {
   // supports mailchimp, buttondown, convertkit, klaviyo, revue, emailoctopus, beehive
@@ -81,7 +81,7 @@ const siteMetadata = {
       // example: https://giscus.app/themes/custom_example.css
       themeURL: '',
       // This corresponds to the `data-lang="en"` in giscus's configurations
-      lang: 'en',
+      lang: 'ja',
     },
   },
   search: {
