@@ -98,3 +98,7 @@ module.exports = () => {
     },
   })
 }
+
+const nextConfig = {
+  output: "export"
+};
