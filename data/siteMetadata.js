@@ -1,13 +1,13 @@
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: 'ajshootingBlog',
+  title: 'ajshooting-blog',
   author: 'ajshooting',
-  headerTitle: 'ajshooting Blog',
-  description: "ajshooting's blog - using tailwind-nextjs-starter-blog",
+  headerTitle: 'ajshooting-blog',
+  description: "ajshooting's blog - ひろくあさく",
   language: 'ja',
   theme: 'system', // system, dark or light
-  siteUrl: 'https://ajshooting.github.io/blog',
-  siteRepo: 'https://github.com/ajshooting/blog',
+  siteUrl: 'https://ajshooting-blog.pages.dev',
+  siteRepo: 'https://ajshooting-blog.pages.dev',
   siteLogo: `${process.env.BASE_PATH || ''}/static/images/logo.png`,
   socialBanner: `${process.env.BASE_PATH || ''}/static/images/twitter-card.png`,
   // mastodon: 'https://mastodon.social/@mastodonuser',
@@ -16,7 +16,7 @@ const siteMetadata = {
   x: 'https://twitter.com/ajshooting',
   // twitter: 'https://twitter.com/ajshooting',
   // facebook: 'https://facebook.com',
-  // youtube: 'https://youtube.com',
+  // youtube: 'https://youtube.com/ajshooting',
   // linkedin: 'https://www.linkedin.com',
   // threads: 'https://www.threads.net',
   // instagram: 'https://www.instagram.com',
