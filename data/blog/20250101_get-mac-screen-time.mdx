@@ -1,0 +1,69 @@
+---
+title: macのスクリーンタイム情報を一括で取得する
+date: '2025-01-01'
+tags: ['mac','python']
+draft: false
+summary: 過去含め、macのスクリーンタイム情報を取得するスクリプトをpythonで作成した
+---
+
+どうもこんにちは。  
+macのスクリーンタイムって1日/1週間ごとでの情報しか見れないじゃないですか。
+自分はこれを今まで全部〜とか1年〜とかでみれたら嬉しいなと思いました。
+
+
+## macのスクリーンタイム情報はどこに保存されている？
+
+mac上の何処かには保存されているはずだと思い、いろいろ探しました。
+Google等でも調べたんですけど調べ方がよくないのか求める情報は見つかりませんでした。
+
+途方に暮れていたのですが、ダメ元でAIに聞いたらなんと教えてくれました。
+それによると、
+
+`/private/var/folders/.../com.apple.ScreenTimeAgent/Store/RMAdminStore-Local.sqlite`(ローカルユーザ用)
+
+`/private/var/db/parentalcontrols/.../RMAdminStore-Local.sqlite`(ファミリー共有で管理されるユーザー用)
+
+にあるSQLiteデータベースファイルに保存されていると教えてくれました。  
+自分の環境で確認したところ、確かに
+
+`/private/var/folders/wd/ns3hk3mj000gn/0/com.apple.ScreenTimeAgent/Store/RMAdminStore-Local.sqlite`
+
+というファイルが存在していました。やったね。  
+中を見るといろいろそれっぽいのがあったのでここに保存されているで間違いないでしょう。
+
+(`folders/.../com.apple.ScreenTimeAgent`の間の部分はランダムっぽい文字列でした。
+`/private/var/folders`ディレクトリで "RMAdminStore-Local.sqlite" で検索すると出てきました。)
+
+(自分の環境では複数の "RMAdminStore-Local.sqlite" が見つかりましたが、一番新しくてファイルサイズがでかいものを扱うことにしました。)
+
+(なお、自分の環境では`/private/var/db/parentalcontrols`フォルダの存在を確認できなかったので、ファミリー共有で管理されるユーザー用の方は間違ってるかもしれないです...)
+
+
+## RMAdminStore-Local.sqlite には何が書いてあるのか
+
+DB Browser for SQLite とか VSCode の拡張機能とかで SQLiteファイルを見てみました。  
+自分の環境だと33個のテーブルが中に存在していました。
+どれが何かとか全然わからなかったですが、自分なりに解釈して関係ありそうなものをピックアップしてみます。
+
+- ZINSTALLEDAPP (インストール済みのアプリ)
+- ZUSAGEBLOCK (ここが多分メインの場所)
+- ZUSAGECATEGORY (カテゴリ別データ？)
+- ZUSAGECOUNTEDITEM (カウントされた項目？)
+- ZUSAGETIMEDITEM (時間単位のデータ？)
+
+くらいですかね。正直これ以外のテーブルにはそもそも何も入ってなかったり大した情報がなさそうな感じでした。
+自分はこの中でも`ZUSAGEBLOCK`の部分が一番それっぽかったのでここを取得したいなと思いました。
+
+余談ですが、最初に"Z"がつくのは Core Data っていうフレームワーク特有のものらしい。
+
+なお、今後日時としての数字が出てくるが、これはよくあるUNIXタイムスタンプではなく、
+Cocoa Core Dataタイムスタンプというものらしいからそこには注意が必要です。
+これは、2001年1月1日0:00からの秒数で表しています。
+(UNIXタイムスタンプは1970年1月1日0:00からの秒数)
+
+
+## データの取得
+
+pythonでこれらのデータをまるっと取得しようと思いました。
+SQLiteを読み込めそうなので。
+
