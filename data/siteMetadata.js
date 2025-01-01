@@ -7,7 +7,7 @@ const siteMetadata = {
   language: 'ja',
   theme: 'system', // system, dark or light
   siteUrl: 'https://ajshooting-blog.pages.dev',
-  siteRepo: 'https://ajshooting-blog.pages.dev',
+  siteRepo: 'https://github.com/ajshooting/blog',
   siteLogo: `${process.env.BASE_PATH || ''}/static/images/logo.png`,
   socialBanner: `${process.env.BASE_PATH || ''}/static/images/twitter-card.png`,
   // mastodon: 'https://mastodon.social/@mastodonuser',
