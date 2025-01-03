@@ -1,7 +1,7 @@
 ---
 title: macのスクリーンタイム情報を一括で取得する
 date: '2025-01-01'
-tags: ['mac','python']
+tags: ['mac','python','sqlite']
 draft: false
 summary: 過去含め、macのスクリーンタイム情報を取得するスクリプトをpythonで作成した
 ---
@@ -46,13 +46,13 @@ DB Browser for SQLite とか VSCode の拡張機能とかで SQLiteファイル�
 どれが何かとか全然わからなかったですが、自分なりに解釈して関係ありそうなものをピックアップしてみます。
 
 - ZINSTALLEDAPP (インストール済みのアプリ)
-- ZUSAGEBLOCK (ここが多分メインの場所)
+- ZUSAGEBLOCK (ブロックごとのデータ？)
 - ZUSAGECATEGORY (カテゴリ別データ？)
 - ZUSAGECOUNTEDITEM (カウントされた項目？)
 - ZUSAGETIMEDITEM (時間単位のデータ？)
 
 くらいですかね。正直これ以外のテーブルにはそもそも何も入ってなかったり大した情報がなさそうな感じでした。
-自分はこの中でも`ZUSAGEBLOCK`の部分が一番それっぽかったのでここを取得したいなと思いました。
+自分はこの中でも`ZUSAGEBLOCK`とか`ZUSAGETIMEDITEM `の部分が一番それっぽかったのでここを取得したいなと思いました。
 
 余談ですが、最初に"Z"がつくのは Core Data っていうフレームワーク特有のものらしい。
 
@@ -67,3 +67,82 @@ Cocoa Core Dataタイムスタンプというものらしいからそこには�
 pythonでこれらのデータをまるっと取得しようと思いました。
 SQLiteを読み込めそうなので。
 
+こんな感じで実装してみました。Githubに載せておくのでそっちもみてね。
+
+```python
+# 該当のsqliteファイルを見つける関数
+def find_latest_db_file():
+    db_files = glob.glob(
+        "/private/var/folders/*/*/0/com.apple.ScreenTimeAgent/Store/RMAdminStore-Local.sqlite",
+        recursive=True,
+    )
+    if not db_files:
+        return None
+
+    # 複数あったら最新のやつ
+    latest_db_file = max(db_files, key=os.path.getmtime)
+    return latest_db_file
+```
+
+取れそうな情報は全部取ろうかなと思いました。  
+ZLONGESTSESSIONENDDATE(たぶん最長セッションの日時)とか要らなそうだと思ったのでとりませんでした。  
+978307200を足すことでUNIXタイムスタンプへ変換している
+
+```python
+# いい感じにデータ取る関数
+def extract_data(db_file):
+    try:
+        conn = sqlite3.connect(db_file)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        query = """
+        SELECT
+            IFNULL(utimed.ZBUNDLEIDENTIFIER, utimed.ZDOMAIN) as app,
+            utimed.ZTOTALTIMEINSECONDS as total_time,
+            datetime(ublock.ZFIRSTPICKUPDATE + 978307200, 'unixepoch') as first_pickup_date,
+            datetime(ublock.ZSTARTDATE + 978307200, 'unixepoch') as start_date,
+            datetime(ublock.ZLASTEVENTDATE + 978307200, 'unixepoch') as last_event_date,
+            ucounted.ZNUMBEROFNOTIFICATIONS as notifications,
+            ucounted.ZNUMBEROFPICKUPS as pickups,
+            ublock.ZNUMBEROFPICKUPSWITHOUTAPPLICATIONUSAGE as pickups_no_use,
+            ublock.ZSCREENTIMEINSECONDS as screentime_seconds,
+            cdevice.ZNAME as device_name,
+            cuser.ZAPPLEID as apple_id,
+            cuser.ZGIVENNAME as given_name,
+            cuser.ZFAMILYNAME as family_name,
+            cuser.ZFAMILYMEMBERTYPE as family_type
+        FROM ZUSAGETIMEDITEM as utimed
+            LEFT JOIN ZUSAGECATEGORY as ucategory on ucategory.Z_PK = utimed.ZCATEGORY
+            LEFT JOIN ZUSAGEBLOCK as ublock on ublock.Z_PK = ucategory.ZBLOCK
+            LEFT JOIN ZUSAGE as usage on usage.Z_PK = ublock.ZUSAGE
+            LEFT JOIN ZCOREDEVICE as cdevice on cdevice.Z_PK = usage.ZDEVICE
+            LEFT JOIN ZCOREUSER as cuser on cuser.Z_PK = usage.ZUSER
+            LEFT JOIN ZUSAGECOUNTEDITEM as ucounted on ucounted.ZBLOCK = ucategory.ZBLOCK AND ucounted.ZBUNDLEIDENTIFIER = utimed.ZBUNDLEIDENTIFIER
+        ORDER BY ublock.ZSTARTDATE
+        """
+
+        cursor.execute(query)
+        rows = cursor.fetchall()
+
+        if not rows:
+            print("No data found in the database.")
+            conn.close()
+            return
+
+        # data.append(rows[0].keys())
+
+        return [row for row in rows]
+
+    except sqlite3.Error as e:
+        print(f"SQLite error: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        if conn:
+            conn.close()
+```
+
+こんな感じで、保存されている全期間のスクリーンタイムを表示するものを作ってみました。
+
+https://github.com/ajshooting/total-screentime
