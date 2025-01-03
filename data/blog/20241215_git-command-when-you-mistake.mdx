@@ -1,0 +1,81 @@
+---
+title: やらかした時のGitコマンド
+date: '2024-12-15'
+tags: ['git']
+draft: false
+summary: 
+---
+
+こんにちは。  
+自分はよくGitの操作を誤ってしまい、毎回混乱してしまいます。
+ここに自分のやらかしがちなミスとその対処法を自分用に書き留めてみます。
+
+なお、あらゆる責任は取れないのでちゃんと調べて自己責任で実行してください、、
+
+
+## 基本
+
+```zsh
+git reset --soft HEAD^	# commit取り消し
+git reset HEAD			    # add取り消し
+```
+
+
+## n個前のコミットまで戻りたい
+
+```zsh
+git reset --soft HEAD~n   # --soft: ワーキングエリアとステージはそのまま
+git reset --hard HEAD~n   # --hard: ワーキングエリアとステージを破棄
+```
+
+
+## .gitignoreに追加してるのに.DS_Storeが消えない
+
+```zsh
+git rm -r --cached .DS_Store
+```
+
+
+## アカウントを間違えたままコミット、プッシュまでしてしまった
+
+```zsh
+git reset --soft HEAD^      # 最新コミットの取り消し
+git reset HEAD              # ステージングエリア取り消し
+git push origin +HEAD^:main # リモートリポジトリの変更を取り消す(ブランチ名は適宜変更)
+
+# Gitのアカウントを切り替える
+
+git add .
+git commit -m "message"
+git push
+```
+
+
+## アカウントを間違えてpushしてしまったため、GitHub上のcontributorに名前が載ってしまった
+
+ブランチ名を一時的に変更し、(main->main2など)すぐに戻す(main2->main)
+という操作をGithub上で行う。  
+数分待つと消えます。
+
+
+## 過去のコミットのアカウントを間違えてた
+
+以下を実行すると、そのブランチでのすべてのコミットに対して、強制的にauthorとかを書き換える。
+個人開発とか以外は実行しないことを強く推奨します。  
+なお、署名は全部消えちゃいます。(署名つけながらやる方法を知っている方は教えてください...)
+
+```zsh
+git filter-branch -f --env-filter "GIT_AUTHOR_NAME='ajshooting'; GIT_AUTHOR_EMAIL='ajshooting.aj@gmail.com'; GIT_COMMITTER_NAME='ajshooting'; GIT_COMMITTER_EMAIL='ajshooting.aj@gmail.com';" HEAD
+```
+
+filter-repo とかを使って署名付きでやる方法も見かけたんですけど、自分はうまくいきませんでした。
+
+
+## VSCodeでコミットしようとしたら謎のエラー
+
+```error
+
+```
+
+CLIの方からコミットすると、GPGキーの認証が入るので、一回はそっちでやる。
+期間内ならそれ以降はVSCode上で可能。
