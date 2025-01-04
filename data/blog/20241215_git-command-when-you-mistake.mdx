@@ -65,7 +65,7 @@ git push
 なお、署名は全部消えちゃいます。(署名つけながらやる方法を知っている方は教えてください...)
 
 ```zsh
-git filter-branch -f --env-filter "GIT_AUTHOR_NAME='ajshooting'; GIT_AUTHOR_EMAIL='ajshooting.aj@gmail.com'; GIT_COMMITTER_NAME='ajshooting'; GIT_COMMITTER_EMAIL='ajshooting.aj@gmail.com';" HEAD
+git filter-branch -f --env-filter "GIT_AUTHOR_NAME='<アカウント名>'; GIT_AUTHOR_EMAIL='<emailアドレス>'; GIT_COMMITTER_NAME='<アカウント名>'; GIT_COMMITTER_EMAIL='<emailアドレス>';" HEAD
 ```
 
 filter-repo とかを使って署名付きでやる方法も見かけたんですけど、自分はうまくいきませんでした。

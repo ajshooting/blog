@@ -3,7 +3,7 @@ const siteMetadata = {
   title: 'ajshooting-blog',
   author: 'ajshooting',
   headerTitle: 'ajshooting-blog',
-  description: "ajshooting's blog - ひろくあさく",
+  description: 'ajshooting blog - ひろくあさく',
   language: 'ja',
   theme: 'system', // system, dark or light
   siteUrl: 'https://ajshooting-blog.pages.dev',
