@@ -1,0 +1,135 @@
+---
+title: CPUでの歌詞認識においてのwhisperとfaster-whisperの比較
+date: '2025-01-08'
+tags: ['python','whisper','colab']
+draft: false
+summary: 歌詞を認識することについて、whisperとfaster-whisperをそれぞれCPUで実行し、速度と精度を比較しました
+---
+
+こんにちは  
+whisperを使用して歌詞認識を行っていたのですが、faster-whisperなるものを知り、
+こちらの方がいいのではないかと思い検証しようと思いました。  
+公式サイト等を見るとfaster-whisperの方が数倍早くなるとか書いてあったのでそんなことあるか？と思いました。
+
+**自分の要件である、低スペックかつCPUのみでの実行でも高速化するのかどうかの検証をしました。**
+
+## 環境・条件
+実行はgooglecolab上で行いました。もちろんCPUです。  
+今回は完全に自分用の検証ですので、楽曲をそのままwhisperにぶっ込みます。
+音源分離してから認識させるより、原曲そのままを認識させた方が精度が高くなるという経験則です。
+
+それぞれのwhisperモデルは base を使用しました。
+
+いくつかの楽曲を用意し、それぞれで3回づつ認識させた後、
+原曲の歌詞との一致度を計算します。
+(一致度は`SequenceMatcher(None, s1, s2).ratio()`を使用しました。正確じゃないかもしれないけど雰囲気です。)  
+正直、認識の精度は参考地のように考えてもらった方がいいと思います、、
+
+後から気づいたんですけど、faster-whisperはint8で、whisperは以下のエラーによりFP32で実行だったらしいです。
+
+```
+/usr/local/lib/python3.10/dist-packages/whisper/transcribe.py:132: UserWarning: FP16 is not supported on CPU; using FP32 instead
+```
+
+## 結果
+
+| 楽曲 | 楽曲詳細 | 楽曲時間 | whisper 処理時間/精度 |  faster-whisper 処理時間/精度 |
+| --- | --- | --- | --- | --- |
+| 1 | 一般JPOP | 5:03 | 84.60s / 37.78% | 92.69s / 37.37% |
+| 2 | 特殊JPOP | 3:58 | 113.27s / 31.78% | 122.46s / 32.10% |
+| 3 | 冷静JPOP | 4:01 | 102.10s / 44.39s | 111.29s / 43.60% |
+| 4 | 特殊洋楽 | 2:53 | 188.58s / 2.31% | 246.08s / 3.34 |
+| 5 | 一般ボカロ | 2:43 | 85.27s / 35.82% | 142.40s / 36.74 |
+| 6 | 特殊ボカロ | 4:01 | 164.31s / 11.67% | 205.29s / 10.77% |
+
+
+- 一般JPOP : 普通のJPOP、のような曲です。
+- 特殊JPOP : 特徴のある、少し変わった曲です。処理時間が増え、精度も落ちています。
+- 冷静JPOP : 演奏の楽器数が少ない曲です。認識精度は上がります。
+- 特殊洋楽 : 2言語混ざっている意味わからない洋楽です。処理時間も長く、精度も最悪です。
+- 一般ボカロ : よくあるボカロみたいな曲です。
+- 特殊ボカロ : 変な曲です。認識時間が長く、精度は低くなりました。
+
+
+全体的にfaster-whisperよりwhisperの方が早いというような結果になりました。
+制度に関してはほぼ同じかな、といった感じです。
+
+速度を気にしているようならwhisperを選択する方がいいのではないのかな、と思いました。
+
+多分ですがモデルサイズがデカくなってきたり、GPUを活用したりするとfaster-の方が有利になっていくのではないのかな、と思いました。
+ここの将来的には検証してみたいです。
+
+参考ように使用したコードを貼ります。
+
+```python
+import os, time
+import whisper
+from faster_whisper import WhisperModel
+import pandas as pd
+import subprocess
+
+model_whisper = whisper.load_model("base")
+model_faster_whisper = WhisperModel("base", device="cpu", compute_type="int8")
+
+# 音楽ファイルが保存されているフォルダ
+music_folder = "musics"
+
+# 結果を保存するフォルダ
+whisper_results_folder = "whisper_results"
+faster_whisper_results_folder = "faster_whisper_results"
+os.makedirs(whisper_results_folder, exist_ok=True)
+os.makedirs(faster_whisper_results_folder, exist_ok=True)
+
+# 実行回数
+num_runs = 3
+
+# 速度を記録するためのデータフレーム
+results_df = pd.DataFrame(columns=["filename", "whisper_avg_time", "faster_whisper_avg_time"])
+
+# フォルダ内のすべての音楽ファイルを処理
+for filename in os.listdir(music_folder):
+    if filename.endswith((".mp3", ".wav", ".m4a")):
+        filepath = os.path.join(music_folder, filename)
+
+        # whisper
+        whisper_times = []
+        for i in range(num_runs):
+            start_time = time.time()
+            try:
+                result_whisper = model_whisper.transcribe(filepath)
+            except:
+                print("ffmpeg not found. installing...")
+                subprocess.run(["add-apt-repository", "-y", "ppa:savoury1/ffmpeg4"])
+                subprocess.run(["apt-get", "-q", "update"])
+                subprocess.run(["apt-get", "-y", "install", "ffmpeg"])
+                print("ffmpeg installed.")
+                result_whisper = model_whisper.transcribe(filepath)
+            end_time = time.time()
+            whisper_times.append(end_time - start_time)
+
+            with open(os.path.join(whisper_results_folder, f"{filename}_run{i+1}.txt"), "w") as f:
+                f.write(result_whisper["text"])
+
+        # faster-whisper
+        faster_whisper_times = []
+        for i in range(num_runs):
+            start_time = time.time()
+            segments, info = model_faster_whisper.transcribe(filepath, beam_size=5)
+            result_faster_whisper = ""
+            for segment in segments:
+                result_faster_whisper += segment.text
+            end_time = time.time()
+            faster_whisper_times.append(end_time - start_time)
+
+            with open(os.path.join(faster_whisper_results_folder, f"{filename}_run{i+1}.txt"), "w") as f:
+                f.write(result_faster_whisper)
+
+        # 平均
+        whisper_avg_time = sum(whisper_times) / num_runs
+        faster_whisper_avg_time = sum(faster_whisper_times) / num_runs
+
+        results_df = pd.concat([results_df, pd.DataFrame([{"filename": filename, "whisper_avg_time": whisper_avg_time, "faster_whisper_avg_time": faster_whisper_avg_time}])], ignore_index=True)
+        print(f"{filename}: Whisper Avg Time: {whisper_avg_time:.2f}s, Faster-Whisper Avg Time: {faster_whisper_avg_time:.2f}s")
+
+results_df.to_csv("transcription_speed_comparison.csv", index=False)
+```
