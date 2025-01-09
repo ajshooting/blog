@@ -1,0 +1,79 @@
+---
+title: macでwakapiのサーバ起動を自動化する
+date: '2025-01-10'
+tags: ['mac','wakapi','screentime']
+draft: false
+summary: macでログイン時などに自動でwakapiのサーバが起動するようにした
+---
+
+こんにちは  
+自分はmacでwakapiを使用してコーディングなどの時間を可視化して楽しんでいますが、
+これをローカルで楽に実装できないかを試してみました。
+
+
+## 現状
+
+```zsh
+~/wakapi
+```
+
+を実行すればlocalhostに鯖が立つ。(自分は~/config.ymlの設定で3000番から変えています)  
+ログインするたびにこれを実行するのがめんどくさいのでこれを自動化したい
+
+## 方法
+
+以下のように`~/Library/LaunchAgents/com.<ユーザ名>.wakapi.plist`を作成する。
+ユーザ名のとことはお使いのmacに合わせてください。
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.{ユーザ名}.wakapi</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/{ユーザ名}/wakapi</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/wakapi.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/wakapi.err</string>
+</dict>
+</plist>
+```
+
+指定の場所に作成できたら以下を実行してロードします
+
+```zsh
+launchctl load ~/Library/LaunchAgents/com.{ユーザ名}.wakapi.plist
+```
+
+これでログイン時に自動で実行され、なんらかの問題で終了しても自動で再実行されます。
+実際にlocalhostにアクセスして確認してみてください。
+
+登録後すぐは、これを実行すれば実行できます
+
+```zsh
+launchctl start com.{ユーザ名}.wakapi
+```
+
+これで停止します
+
+
+```zsh
+launchctl stop com.{ユーザ名}.ewakapi
+```
+
+登録解除はこれです
+
+```zsh
+launchctl unload ~/Library/LaunchAgents/com.{ユーザ名}.wakapi.plist
+```
+
+
