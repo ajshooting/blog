@@ -1,0 +1,54 @@
+/* css/link-card.css */
+.remark-link-card-wrapper {
+  display: flex;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  margin-bottom: 1rem;
+}
+
+.remark-link-card-main {
+  flex-grow: 1;
+  padding: 1rem;
+}
+
+.remark-link-card-title {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.remark-link-card-description {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.remark-link-card-origin {
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.remark-link-card-origin img {
+  width: 16px;
+  height: 16px;
+  margin-right: 0.5rem;
+}
+
+.remark-link-card-domain {
+  color: #999;
+}
+
+.remark-link-card-image {
+  width: 150px;
+  /* 画像の幅を調整 */
+  flex-shrink: 0;
+}
+
+.remark-link-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
