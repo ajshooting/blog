@@ -51,7 +51,18 @@ module.exports = {
               fontWeight: '600',
             },
             code: {
-              color: theme('colors.indigo.500'),
+              color: theme('colors.gray.600'),
+              background: theme('colors.gray.200'),
+              borderRadius: '0.2rem',
+              padding: '0 0.3em',
+              margin: '0 0.2em',
+              // ``で囲まれなくする
+              '&::before': {
+                content: '"" !important',
+              },
+              '&::after': {
+                content: '"" !important',
+              },
             },
           },
         },
