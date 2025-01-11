@@ -14,7 +14,7 @@ summary: macでログイン時などに自動でwakapiのサーバが起動す�
 ## 現状
 
 ```zsh
-~/wakapi
+./wakapi
 ```
 
 を実行すればlocalhostに鯖が立つ。(自分は~/config.ymlの設定で3000番から変えています)  
@@ -24,6 +24,8 @@ summary: macでログイン時などに自動でwakapiのサーバが起動す�
 
 以下のように`~/Library/LaunchAgents/com.<ユーザ名>.wakapi.plist`を作成する。
 ユーザ名のとことはお使いのmacに合わせてください。
+
+なお、pathは絶対pathを使用しないと動きません。`~/`とかも使えません。
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -35,6 +37,8 @@ summary: macでログイン時などに自動でwakapiのサーバが起動す�
     <key>ProgramArguments</key>
     <array>
         <string>/Users/{ユーザ名}/wakapi</string>
+        <string>-config</string>
+        <string>/Users/{ユーザ名}/config.yml<string>
     </array>
     <key>RunAtLoad</key>
     <true/>
