@@ -25,6 +25,8 @@ import rehypePresetMinify from 'rehype-preset-minify'
 import siteMetadata from './data/siteMetadata'
 import { allCoreContent, sortPosts } from 'pliny/utils/contentlayer.js'
 
+import { remarkLinkCard } from './scripts/remark-link-card.mjs'
+
 const root = process.cwd()
 const isProduction = process.env.NODE_ENV === 'production'
 
@@ -157,6 +159,7 @@ export default makeSource({
       remarkMath,
       remarkImgToJsx,
       remarkAlert,
+      remarkLinkCard,
     ],
     rehypePlugins: [
       rehypeSlug,
