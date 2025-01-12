@@ -1,4 +1,3 @@
-// remark-link-card.mjs
 import { visit } from 'unist-util-visit'
 import getMetadata from 'metadata-scraper'
 
