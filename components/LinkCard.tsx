@@ -22,15 +22,13 @@ const LinkCard: React.FC<LinkCardProps> = ({
 
   return (
     <span className="my-4 block rounded-lg border shadow-md transition-shadow hover:shadow-lg">
-      {' '}
-      {/* 変更: article -> span, blockクラス追加 */}
       <Link
         href={url}
         {...(isExternal === 'true' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
         passHref
         className="contents"
       >
-        <span className="inline-block flex flex-col overflow-hidden md:flex-row">
+        <span className="flex flex-col overflow-hidden md:flex-row">
           {/* 画像部分 */}
           {image && (
             <span className="inline-block flex-shrink-0 md:w-36">
@@ -42,14 +40,16 @@ const LinkCard: React.FC<LinkCardProps> = ({
               />
             </span>
           )}
-          <span className="inline-block p-3">
+          <span className="p-3">
             {/* タイトル */}
-            <span className="line-clamp-1 block text-base font-bold text-blue-600 hover:underline">
+            <span className="line-clamp-1 block overflow-hidden whitespace-pre-wrap break-words text-base font-bold text-blue-600 hover:underline">
               {title}
             </span>
             {/* 説明文 */}
             {description && (
-              <span className="mt-0.5 line-clamp-2 block text-sm text-gray-600">{description}</span>
+              <span className="mt-0.5 block max-h-6 overflow-hidden whitespace-pre-wrap break-words text-sm leading-6 text-gray-600">
+                {description}
+              </span>
             )}
             {/* ドメインとアイコン */}
             <span className="mt-1 flex items-center">
