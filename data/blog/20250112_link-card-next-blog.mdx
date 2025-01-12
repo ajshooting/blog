@@ -1,0 +1,254 @@
+---
+title: Next.jsのブログにリンクカードを実装
+date: '2025-01-12'
+tags: ['blog','next.js','react','mdx']
+draft: false
+summary: tailwind-nextjs-starter-blogにリンクカードを実装した
+---
+
+こんにちは  
+このブログは tailwind-nextjs-starter-blog というものをベースに作らさせていただいているのですが、
+このブログに貼るリンクを下のリッチリンク/リンクカードみたいにしたいなと思いました。
+
+https://github.com/timlrx/tailwind-nextjs-starter-blog
+
+なお、実装およびこの記事の作成については以下の記事を大変参考にさせていただいております。
+ぜひこちらもご確認ください。
+
+https://egashira.dev/blog/nextjs-mdx-link-card
+
+
+## 実装
+
+今回は tailwind-nextjs-starter-blog にそのまま実装できるような感じです。
+注意点としては、よくわからないけど全体が`<p>`タグに囲まれてしまうので制約が少し厳しいということです。
+
+`<span>`とかを駆使してなんとか実装できたのかな..?って思います(テンプレート側はいじっていない)
+
+参考サイト通り`metadata-scraper`ってのを使用したいと思います。
+
+```zsh
+yarn add metadata-scraper
+```
+
+`scripts/remark-link-card.mjs`を以下のように作成しました。
+
+```js
+import { visit } from 'unist-util-visit'
+import getMetadata from 'metadata-scraper'
+
+const MY_HOST = 'your-domain.com' // ここは書き換えてください
+
+const isLinkNode = (node) => {
+  return (
+    node.type === 'paragraph' &&
+    node.children.length === 1 &&
+    node.children[0].type === 'link' &&
+    node.children[0].children.length === 1 &&
+    node.children[0].children[0].type === 'text'
+  )
+}
+
+export function remarkLinkCard() {
+  return async (tree) => {
+    const nodesToProcess = []
+
+    visit(tree, isLinkNode, (node) => {
+      nodesToProcess.push(node)
+    })
+
+    await Promise.all(
+      nodesToProcess.map(async (node) => {
+        const linkNode = node.children[0]
+        const url = linkNode.url
+        const linkText = linkNode.children[0].value
+
+        // リンクテキストとURLが同じもののみを対象とする
+        if (url !== linkText) return
+
+        try {
+          const metadata = await getMetadata(url)
+          const { title, description, image, icon } = metadata
+
+          const domain = new URL(url)
+          const isExternal = domain.hostname !== MY_HOST
+
+          const linkCardNode = {
+            type: 'mdxJsxFlowElement',
+            name: 'LinkCard',
+            attributes: [
+              {
+                type: 'mdxJsxAttribute',
+                name: 'url',
+                value: url,
+              },
+              {
+                type: 'mdxJsxAttribute',
+                name: 'title',
+                value: title || '',
+              },
+              {
+                type: 'mdxJsxAttribute',
+                name: 'description',
+                value: description || '',
+              },
+              {
+                type: 'mdxJsxAttribute',
+                name: 'image',
+                value: image || '',
+              },
+              {
+                type: 'mdxJsxAttribute',
+                name: 'icon',
+                value: icon || '',
+              },
+              {
+                type: 'mdxJsxAttribute',
+                name: 'isExternal',
+                value: isExternal ? 'true' : 'false',
+              },
+            ],
+            children: [],
+          }
+
+          node.type = 'paragraph'
+          node.children = [linkCardNode]
+        } catch (error) {
+          console.error(`Error fetching metadata for ${url}:`, error)
+        }
+      })
+    )
+  }
+}
+```
+
+次は、`components/LinkCard.tsx`を作成  
+tailwind css を使用しているので細かいところはお好みに変えてください
+
+```tsx
+import React from 'react'
+import Link from 'next/link'
+
+interface LinkCardProps {
+  url: string
+  title: string
+  description: string
+  image?: string
+  icon?: string
+  isExternal: string
+}
+
+const LinkCard: React.FC<LinkCardProps> = ({
+  url,
+  title,
+  description,
+  image,
+  icon,
+  isExternal,
+}) => {
+  const domain = new URL(url).hostname
+
+  return (
+    <span className="my-4 block rounded-lg border shadow-md transition-shadow hover:shadow-lg">
+      <Link
+        href={url}
+        {...(isExternal === 'true' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+        passHref
+        className="contents"
+      >
+        <span className="flex flex-row overflow-hidden">
+          {/* 画像部分 */}
+          {image && (
+            <span className="inline-block w-24 flex-shrink-0 md:w-40">
+              <img
+                src={image}
+                alt={title}
+                className="m-0 h-full w-24 object-cover md:w-40"
+                loading="lazy"
+              />
+            </span>
+          )}
+          <span className="p-2 md:p-3">
+            {/* タイトル */}
+            <span className="block max-h-6 overflow-hidden whitespace-pre-wrap break-words text-base font-bold text-blue-600 hover:underline">
+              {title}
+            </span>
+            {/* 説明文 */}
+            {description && (
+              <span className="block max-h-8 overflow-hidden whitespace-pre-wrap break-words text-sm leading-4  text-gray-600">
+                {description}
+              </span>
+            )}
+            {/* ドメインとアイコン */}
+            <span className="mt-1 flex items-center">
+              {icon && <img src={icon} alt={domain} className="m-1 mr-1 h-4 w-4" loading="lazy" />}
+              <span className="text-sm text-gray-500">{domain}</span>
+            </span>
+          </span>
+        </span>
+      </Link>
+    </span>
+  )
+}
+
+export default LinkCard
+```
+
+そしたら、`components/MDXComponents.tsx`を編集
+
+```tsx
+import TOCInline from 'pliny/ui/TOCInline'
+import Pre from 'pliny/ui/Pre'
+import BlogNewsletterForm from 'pliny/ui/BlogNewsletterForm'
+import type { MDXComponents } from 'mdx/types'
+import Image from './Image'
+import CustomLink from './Link'
+import TableWrapper from './TableWrapper'
+
++ import LinkCard from './LinkCard'
+
+export const components: MDXComponents = {
+  Image,
+  TOCInline,
+  a: CustomLink,
+  pre: Pre,
+  table: TableWrapper,
+  BlogNewsletterForm,
++  LinkCard,
+}
+```
+
+`contentlayer.config.ts`に以下の内容を追加
+
+```ts
+// ほかのimportたち
++ import { remarkLinkCard } from './scripts/remark-link-card.mjs'
+
+...略...
+
+export default makeSource({
+  contentDirPath: 'data',
+  documentTypes: [Blog, Authors],
+  mdx: {
+    cwd: process.cwd(),
+    remarkPlugins: [
+      remarkExtractFrontmatter,
+      remarkGfm,
+      remarkCodeTitles,
+      remarkMath,
+      remarkImgToJsx,
+      remarkAlert,
++      remarkLinkCard,
+    ],
+
+以下続く...
+```
+
+これで完成なはずです。
+
+mdxファイルにリンクそのものを貼るだけでビルド時にリンクカードを生成してくれると思います。
+
+
+## 参考
+
+https://egashira.dev/blog/nextjs-mdx-link-card
