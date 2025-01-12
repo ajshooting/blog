@@ -94,6 +94,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
 
       <meta name="google-adsense-account" content="ca-pub-9465685790029832"></meta>
+      <meta name="google-site-verification" content="urGb0jPRJD-ZpCtGHmdHY8cuzIClkNwAP1e9DtEh_L4" />
+
+      <script
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9465685790029832"
+        crossorigin="anonymous"
+      ></script>
 
       <link rel="alternate" type="application/rss+xml" href={`${basePath}/feed.xml`} />
       <body className="bg-white pl-[calc(100vw-100%)] text-black antialiased dark:bg-gray-950 dark:text-white">
