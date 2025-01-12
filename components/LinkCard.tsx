@@ -21,42 +21,45 @@ const LinkCard: React.FC<LinkCardProps> = ({
   const domain = new URL(url).hostname
 
   return (
-    <div className="my-4 rounded-lg border shadow-md transition-shadow hover:shadow-lg">
+    <span className="my-4 block rounded-lg border shadow-md transition-shadow hover:shadow-lg">
+      {' '}
+      {/* 変更: article -> span, blockクラス追加 */}
       <Link
         href={url}
         {...(isExternal === 'true' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
         passHref
+        className="contents"
       >
-        <div className="flex max-h-36 flex-col overflow-hidden md:flex-row">
+        <span className="inline-block flex flex-col overflow-hidden md:flex-row">
           {/* 画像部分 */}
           {image && (
-            <div className="flex-shrink-0 md:w-36">
+            <span className="inline-block flex-shrink-0 md:w-36">
               <img
                 src={image}
                 alt={title}
                 className="m-0 h-24 w-full object-cover md:h-full md:w-36"
                 loading="lazy"
               />
-            </div>
+            </span>
           )}
-          <div className="p-3">
+          <span className="inline-block p-3">
             {/* タイトル */}
-            <h4 className="m-t-0 line-clamp-1 text-base font-bold text-blue-600 hover:underline">
+            <span className="line-clamp-1 block text-base font-bold text-blue-600 hover:underline">
               {title}
-            </h4>
+            </span>
             {/* 説明文 */}
             {description && (
-              <span className="mt-0.5 line-clamp-2 text-sm text-gray-600">{description}</span>
+              <span className="mt-0.5 line-clamp-2 block text-sm text-gray-600">{description}</span>
             )}
             {/* ドメインとアイコン */}
-            <div className="mt-1 flex items-center">
-              {icon && <img src={icon} alt={domain} className="mr-1 h-4 w-4" loading="lazy" />}
+            <span className="mt-1 flex items-center">
+              {icon && <img src={icon} alt={domain} className="m-1 mr-1 h-4 w-4" loading="lazy" />}
               <span className="text-sm text-gray-500">{domain}</span>
-            </div>
-          </div>
-        </div>
+            </span>
+          </span>
+        </span>
       </Link>
-    </div>
+    </span>
   )
 }
 
