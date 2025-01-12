@@ -1,7 +1,7 @@
 import { visit } from 'unist-util-visit'
 import getMetadata from 'metadata-scraper'
 
-const MY_HOST = 'your-domain.com' // あなたのブログのドメインに置き換えてください
+const MY_HOST = 'ajshooting-blog.pages.dev'
 
 const isLinkNode = (node) => {
   return (
