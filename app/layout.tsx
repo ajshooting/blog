@@ -99,7 +99,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <script
         async
         src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9465685790029832"
-        crossorigin="anonymous"
+        crossOrigin="anonymous"
       ></script>
 
       <link rel="alternate" type="application/rss+xml" href={`${basePath}/feed.xml`} />
