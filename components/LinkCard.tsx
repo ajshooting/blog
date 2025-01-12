@@ -28,26 +28,26 @@ const LinkCard: React.FC<LinkCardProps> = ({
         passHref
         className="contents"
       >
-        <span className="flex flex-col overflow-hidden md:flex-row">
+        <span className="flex flex-row overflow-hidden">
           {/* 画像部分 */}
           {image && (
-            <span className="inline-block flex-shrink-0 md:w-36">
+            <span className="inline-block w-24 flex-shrink-0 md:w-40">
               <img
                 src={image}
                 alt={title}
-                className="m-0 h-24 w-full object-cover md:h-full md:w-36"
+                className="m-0 h-full w-24 object-cover md:w-40"
                 loading="lazy"
               />
             </span>
           )}
-          <span className="p-3">
+          <span className="p-2 md:p-3">
             {/* タイトル */}
-            <span className="line-clamp-1 block overflow-hidden whitespace-pre-wrap break-words text-base font-bold text-blue-600 hover:underline">
+            <span className="block max-h-6 overflow-hidden whitespace-pre-wrap break-words text-base font-bold text-blue-600 hover:underline">
               {title}
             </span>
             {/* 説明文 */}
             {description && (
-              <span className="mt-0.5 block max-h-6 overflow-hidden whitespace-pre-wrap break-words text-sm leading-6 text-gray-600">
+              <span className="block max-h-8 overflow-hidden whitespace-pre-wrap break-words text-sm leading-4  text-gray-600">
                 {description}
               </span>
             )}
