@@ -7,9 +7,9 @@ import NewsletterForm from 'pliny/ui/NewsletterForm'
 const MAX_DISPLAY = 5
 
 export default function Home({ posts, totalCharacters }) {
-  const tagCounts = {}
-  posts.forEach((post) => {
-    post.tags.forEach((tag) => {
+  const tagCounts: Record<string, number> = {}
+  posts.forEach((post: { tags: string[] }) => {
+    post.tags.forEach((tag: string) => {
       tagCounts[tag] = (tagCounts[tag] || 0) + 1
     })
   })
