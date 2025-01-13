@@ -5,5 +5,6 @@ import Main from './Main'
 export default async function Page() {
   const sortedPosts = sortPosts(allBlogs)
   const posts = allCoreContent(sortedPosts)
-  return <Main posts={posts} />
+  const totalCharacters = sortedPosts.reduce((acc, post) => acc + post.body.raw.length, 0)
+  return <Main posts={posts} totalCharacters={totalCharacters} />
 }

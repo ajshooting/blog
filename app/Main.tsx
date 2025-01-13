@@ -6,7 +6,16 @@ import NewsletterForm from 'pliny/ui/NewsletterForm'
 
 const MAX_DISPLAY = 5
 
-export default function Home({ posts }) {
+export default function Home({ posts, totalCharacters }) {
+  const tagCounts = {}
+  posts.forEach((post) => {
+    post.tags.forEach((tag) => {
+      tagCounts[tag] = (tagCounts[tag] || 0) + 1
+    })
+  })
+
+  const sortedTags = Object.entries(tagCounts).sort(([, countA], [, countB]) => countB - countA)
+
   return (
     <>
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -17,6 +26,22 @@ export default function Home({ posts }) {
           <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
             {siteMetadata.description}
           </p>
+        </div>
+        <div className="space-y-2 pb-8 pt-6 md:space-y-5">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="text-4xl font-bold text-primary-500">{posts.length}</div>
+              <div className="text-gray-500 dark:text-gray-400">総記事数</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-primary-500">{sortedTags.length}</div>
+              <div className="text-gray-500 dark:text-gray-400">総タグ数</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-primary-500">{totalCharacters}</div>
+              <div className="text-gray-500 dark:text-gray-400">総文字数</div>
+            </div>
+          </div>
         </div>
         <ul className="divide-y divide-gray-200 dark:divide-gray-700">
           {!posts.length && 'No posts found.'}
