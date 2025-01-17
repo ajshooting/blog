@@ -1,0 +1,154 @@
+---
+title: seed-vcをmacのcpuで動かす
+date: '2025-01-17'
+tags: ['python','voice-conversion','mac']
+draft: false
+summary: ゼロショット音声変換ができるseed-vcを、macのcpuで動作させた
+---
+
+こんにちは  
+最近、seed-vcというものを見つけてとても驚きました。
+これは、ゼロショット音声変換(学習の必要がなく、そのまま変換できる的なやつ)がかなりの精度で行えるということでびっくりしました。
+
+https://github.com/Plachtaa/seed-vc
+
+以下のサイト(huggingface)で試してみることができます。
+
+https://huggingface.co/spaces/Plachta/Seed-VC
+
+今回はこれをローカルで動かしたいと思いました
+
+
+## 注意
+
+- 今回はseed-vcを**CPUで**動かすことを目的としています。GPU使ってやる人はこの記事を見ても意味がありません。たぶん
+- 情報は2015/01/17のものです。コード等が変更になっている可能性があります。
+- 自分はIntelのmacで実行します。他の環境の方は違うかもしれないけどそこは許してください
+
+## まず実行
+
+python3.10がいいらしいので、仮想環境を作成してとりあえず実行してみましょう。
+
+```zsh
+git clone https://github.com/Plachtaa/seed-vc.git
+cd seed-vc
+pyenv local 3.10.16  
+python3.10 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+ここまでで準備完了です。
+
+READMEを見るといろいろ実行方法が書いてありますが、とりあえずhuggingfaceと同じようにWebUIで実行しましょう。
+
+```zsh
+python app.py
+```
+
+そしたらなにやらたくさんのダウンロードが始まった後、以下のエラーで止まります。  
+よく見るとNumpyが1.x系じゃないと動かないみたいなことが書いてあったので1.x系にする
+
+```error
+RuntimeError: Numpy is not available
+```
+
+```zsh
+pip install numpy==1.26.4
+```
+
+その後、もう一度`app.py`を実行するとローカルサーバが立ち上がるところまではうまくいく。
+
+`Running on local URL:  http://127.0.0.1:7860`
+
+アクセスするとwebuiが観れると思います。音声ファイルを2つ入れて、実行すると、、、
+
+```
+RuntimeError: "slow_conv2d_cpu" not implemented for 'Half'
+```
+
+エラーです。どうしたものか...
+
+
+## 改変
+
+先程のエラーは、CPU上で半精度浮動小数点数(Half)を使用した2次元畳み込み演算(slow_conv2d_cpu)が実装されていないために発生しているらしいです。
+
+以下のように`app.py`を書き換えることで動かせます
+
+
+### ① 57行目付近に以下を追加
+
+```python
+# whisper
+from transformers import AutoFeatureExtractor, WhisperModel
+
+whisper_name = model_params.speech_tokenizer.whisper_name if hasattr(model_params.speech_tokenizer,
+                                                                     'whisper_name') else "openai/whisper-small"
+whisper_model = WhisperModel.from_pretrained(whisper_name, torch_dtype=torch.float16).to(device)
+del whisper_model.decoder
+whisper_feature_extractor = AutoFeatureExtractor.from_pretrained(whisper_name)
+
+whisper_model = whisper_model.float() # この行を追加
+```
+
+
+### ② 183行目付近に以下を追加
+
+```python
+        while traversed_time < converted_waves_16k.size(-1):
+            if buffer is None:  # first chunk
+                chunk = converted_waves_16k[:, traversed_time:traversed_time + 16000 * 30]
+            else:
+                chunk = torch.cat([buffer, converted_waves_16k[:, traversed_time:traversed_time + 16000 * (30 - overlapping_time)]], dim=-1)
+            
+            chunk = chunk.float()  #この行を追加
+```
+
+
+### ③ 238行目付近の部分を変更
+
+```python
+    feat2 = torchaudio.compliance.kaldi.fbank(ref_waves_16k,
+                                              num_mel_bins=80,
+                                              dither=0,
+                                              sample_frequency=16000)
+    feat2 = feat2 - feat2.mean(dim=0, keepdim=True)
+    
+    style2 = campplus_model(feat2.unsqueeze(0).float())  # .float() を追加する
+```
+
+### ④ 282行目付近のwithを取り壊す
+
+before
+```python
+        with torch.autocast(device_type=device.type, dtype=torch.float16):
+            # Voice Conversion
+            vc_target = inference_module.cfm.inference(cat_condition,
+                                                   torch.LongTensor([cat_condition.size(1)]).to(mel2.device),
+                                                   mel2, style2, None, diffusion_steps,
+                                                   inference_cfg_rate=inference_cfg_rate)
+            vc_target = vc_target[:, :, mel2.size(-1):]
+        vc_wave = bigvgan_fn(vc_target.float())[0]
+```
+
+after
+```python
+        # with torch.autocast(device_type=device.type, dtype=torch.float16):
+        # Voice Conversion
+        vc_target = inference_module.cfm.inference(cat_condition,
+                                                   torch.LongTensor([cat_condition.size(1)]).to(mel2.device),
+                                                   mel2, style2, None, diffusion_steps,
+                                                   inference_cfg_rate=inference_cfg_rate)
+        vc_target = vc_target[:, :, mel2.size(-1):]
+        vc_wave = bigvgan_fn(vc_target.float())[0]
+```
+
+以上です。
+
+これで`app.py`を実行すれば遅いですがCPUでも動作します。
+
+ちなみに、`app_vc.py`、`app_svc.py`も同じ部分を変更すれば動きます。
+ただ、この2つの場合は実行する際に`--fp16 False`のオプションをつけてくださいね
+
+
