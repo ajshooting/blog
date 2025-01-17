@@ -7,8 +7,9 @@ summary: ゼロショット音声変換ができるseed-vcを、macのcpuで動�
 ---
 
 こんにちは  
-最近、seed-vcというものを見つけてとても驚きました。
-これは、ゼロショット音声変換(学習の必要がなく、そのまま変換できる的なやつ)がかなりの精度で行えるということでびっくりしました。
+最近、seed-vcというものを見つけてとても驚きました。  
+seed-vcは、事前学習済みのモデルを使って、任意の音声Aを、任意の音声Bの声質に変換できる、最先端の音声変換技術です。
+通常、音声変換モデルを学習するには大量の音声データが必要ですが、seed-vc はゼロショット学習と呼ばれる技術により、追加の学習データなしで、高い精度の音声変換を実現しています。
 
 https://github.com/Plachtaa/seed-vc
 
@@ -16,7 +17,7 @@ https://github.com/Plachtaa/seed-vc
 
 https://huggingface.co/spaces/Plachta/Seed-VC
 
-今回はこれをローカルで動かしたいと思いました
+今回はこれをローカルcpuで動かしたいと思います
 
 
 ## 注意
@@ -32,6 +33,7 @@ python3.10がいいらしいので、仮想環境を作成してとりあえず�
 ```zsh
 git clone https://github.com/Plachtaa/seed-vc.git
 cd seed-vc
+pyenv install 3.10.16
 pyenv local 3.10.16  
 python3.10 -m venv venv
 source venv/bin/activate
@@ -73,6 +75,8 @@ RuntimeError: "slow_conv2d_cpu" not implemented for 'Half'
 ## 改変
 
 先程のエラーは、CPU上で半精度浮動小数点数(Half)を使用した2次元畳み込み演算(slow_conv2d_cpu)が実装されていないために発生しているらしいです。
+
+GPUではfloat16を使うことで高速化できる場合がありますが、CPUではfloat32(単精度浮動小数点数)を使う方が一般的です。
 
 以下のように`app.py`を書き換えることで動かせます
 
@@ -150,5 +154,3 @@ after
 
 ちなみに、`app_vc.py`、`app_svc.py`も同じ部分を変更すれば動きます。
 ただ、この2つの場合は実行する際に`--fp16 False`のオプションをつけてくださいね
-
-
