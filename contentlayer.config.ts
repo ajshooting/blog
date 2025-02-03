@@ -206,6 +206,5 @@ export default makeSource({
     const { allBlogs } = await importData()
     createTagCount(allBlogs)
     createSearchIndex(allBlogs)
-    // TODO: proINDEXを作成したいね！
   },
 })
