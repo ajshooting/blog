@@ -103,7 +103,7 @@ function createSearchIndex(allBlogs) {
       const originalDoc = allBlogs.find((blog) => blog._raw.flattenedPath === item.path)
       return {
         ...item,
-        body: originalDoc?.body.raw,
+        bodyText: originalDoc?.bodyText
       }
     })
 
@@ -146,6 +146,10 @@ export const Blog = defineDocumentType(() => ({
         image: doc.images ? doc.images[0] : siteMetadata.socialBanner,
         url: `${siteMetadata.siteUrl}/${doc._raw.flattenedPath}`,
       }),
+    },
+    bodyText: {
+      type: 'string',
+      resolve: (doc) => doc.body.raw.replace(/\n/g, ' ').replace(/\s+/g, ' '),
     },
   },
 }))
