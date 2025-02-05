@@ -103,7 +103,7 @@ function createSearchIndex(allBlogs) {
       const originalDoc = allBlogs.find((blog) => blog._raw.flattenedPath === item.path)
       return {
         ...item,
-        bodyText: originalDoc?.bodyText
+        bodyText: originalDoc?.bodyText,
       }
     })
 
