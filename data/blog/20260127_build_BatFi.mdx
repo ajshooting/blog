@@ -1,0 +1,83 @@
+---
+title: BatFiをビルドして無料で使う
+date: '2026-01-27'
+tags: ['mac','xcode']
+draft: false
+summary: BatFiを自分でビルドして無料で使う方法
+---
+
+
+## BatFiとは
+
+BatFiとは、Macの充電を指定の量で止めたりできる、
+バッテリー管理アプリです。
+
+公式サイトはこちら
+
+https://micropixels.software/apps/batfi
+
+個人使用は無料だとよく紹介されていますが、
+どこかのタイミング(2025入ったくらい？)で有料化されたらしく、
+公式からDLしてもGithubのReleaseからDLしてもコードの入力を求められます。
+
+https://github.com/rurza/BatFi.git
+
+ただ、アプリ自体はMITなので、
+ソースコードをビルドすれば無料で使うことができます。
+
+## ビルド
+### 準備
+
+```zsh
+git clone https://github.com/rurza/BatFi.git
+cd BatFi
+```
+
+`ci_scripts/ci_post_clone.sh`を見ると、ビルド時に `AnalyticsDSN.swift` が自動生成される仕組みになっているが、
+手動ビルドではこのスクリプトが自動実行されないため、これを手動で作成しないとビルドエラーになるかもしれないです。
+
+`BatFiKit/Sources/ClientsLive/`に`AnalyticsDSN.swift`を作成
+
+```swift
+import Foundation
+let analyticsDSN = ""
+```
+
+これはエラーログを送信するためのDSNですが、個人使用なら空文字列で問題ないです。
+
+### xcode上での操作
+
+次に、Xcodeで `BatFi.xcodeproj` を開きます。
+
+`Supporting Files/Config.xcconfig`で以下を変更
+
+```
+APP_BUNDLE_IDENTIFIER = software.micropixels.BatFiKit
+```
+の部分を
+```
+APP_BUNDLE_IDENTIFIER = software.{好きな名前}.BatFi 
+```
+
+左上のプロジェクトルート(BatFi)を選択、
+ターゲットから `BatFi` を選択し、
+`Signing & Capabilities`タブでTeamを自分のAppleIDに設定します。
+
+`Bundle Identifier`はさっき書き換えたものになっているのか確認
+
+同様に`BatFiHelper`など、他のターゲットも同じようにTeamを設定します。
+
+### ビルド
+メニューバーの`[Product] > [Archive]`を選択し、ビルド
+
+数分で完了すると自動で`Organizer`?が開くので、
+`Distribute App`をクリック
+
+自分はそこから`Custom -> copy App`を選択し、
+保存先を指定して保存しました。
+
+それをアプリケーションフォルダに持っていけばOKです
+
+あとは画面通りに操作すればOKです
+
+おわり
