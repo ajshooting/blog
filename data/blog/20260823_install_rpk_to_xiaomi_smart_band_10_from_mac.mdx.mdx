@@ -1,0 +1,66 @@
+---
+title: macからmi band 10にrpkをインストールする
+date: '2026-08-23'
+tags: ['mac']
+draft: false
+summary: macからmi band 10にrpkをインストールする
+---
+
+
+## やりたかったこと
+- Androidなし
+- MacからXiaomi Smart Band 10へ.rpkをサイドロードしたい
+- Mi Fitnessで普段使いしている状態は維持したい
+
+
+# できた
+## `miband-web-install`を使う
+
+webからrpkをインストールできるリポジトリをお借りした
+```zsh
+git clone https://github.com/0-2studio/miband-web-install
+cd miband-web-install
+pnpm install
+pnpm start
+```
+
+ブラウザで`localhost:3000`にアクセスする(BluetoothAPIが許可されてない場合は、許可する。braveとかだとflagsで許可する必要があるかも)
+
+## 認証キーを入手する
+
+同期したiPhoneで、
+```
+iPhone
+└─ ファイル
+   └─ このiPhone内
+      └─ Mi Fitness
+         └─ MHWCahe
+            └─ <数字のフォルダ>
+               └─ VirtualDevice_registerList
+                  └─ manifest.sqlite
+```
+を入手する。
+
+[参考](https://www.bandbbs.cn/threads/24614/)
+
+これの中からKeyを入手する。32桁なので注意。
+
+
+## bandと接続する。
+Macの設定からBluetoothを開き、bandを接続する。
+(band側から「新しいデバイスに接続する」を選択する必要があるかもしれない。)
+
+また、Macとの接続は不安定なのか、一定時間すると接続が切れてしまう。
+その際は一旦Macの設定から接続設定を削除して、再度接続する必要がありそう。
+
+`localhost:3000`で、各種入力を求められる。
+
+デバイス名はBluetooth接続名、
+認証キーは先程取得した32桁のKey、
+アドレスはMacアドレス(本体の情報から確認できます)、
+SARバージョンはv2、接続タイプはBluetoothで自分はやりましたが、接続タイプはどっちでもできるかもです。
+
+macとbandの接続が切れる前に、
+接続を押して、ポップアップから`cu.XiaomiSmartBand10xxxx`を選択する
+
+と、うまくいった。
