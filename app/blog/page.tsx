@@ -2,8 +2,7 @@ import ListLayout from '@/layouts/ListLayoutWithTags'
 import { allCoreContent, sortPosts } from 'pliny/utils/contentlayer'
 import { allBlogs } from 'contentlayer/generated'
 import { genPageMetadata } from 'app/seo'
-
-const POSTS_PER_PAGE = 8
+import { POSTS_PER_PAGE } from './constants'
 
 export const metadata = genPageMetadata({ title: 'Blog' })
 
